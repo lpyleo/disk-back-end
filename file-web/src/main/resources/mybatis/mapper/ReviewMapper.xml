@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.ReviewMapper">
+    <insert id="addReview" parameterType="com.disk.file.model.Review">
+        insert into Review (userId, fileId, content, reviewTime)
+            value (#{userId}, #{fileId}, #{content}, #{reviewTime})
+    </insert>
+
+    <select id="selectAllReviewByFileId" parameterType="java.lang.Long" resultType="com.disk.file.vo.ReviewVO">
+        SELECT
+            User.username,
+            User.avatar,
+            Review.content,
+            Review.reviewTime
+        FROM
+            Review
+                JOIN
+            User
+            ON
+                Review.userId = User.userId
+        WHERE
+            Review.fileId = #{fileId};
+
+    </select>
+</mapper>

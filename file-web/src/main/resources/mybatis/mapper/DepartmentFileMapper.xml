@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.DepartmentFileMapper">
+
+    <select id="departmentfileList" resultType="com.disk.file.vo.DepartmentfileListVO">
+        select * from departmentfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="departmentfile.deptId != null">
+                and a.deptId = #{departmentfile.deptId}
+            </if>
+            <if test="departmentfile.filePath != null">
+                and a.filePath = #{departmentfile.filePath}
+            </if>
+            <if test="departmentfile.extendName != null">
+                and a.extendName = #{departmentfile.extendName}
+            </if>
+            <if test="departmentfile.fileName != null and departmentfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{departmentfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 0
+        </where>
+        ORDER BY isDir desc
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="departmentfileCount" resultType="java.lang.Long">
+        select count(*) from departmentfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="departmentfile.deptId != null">
+                and a.deptId = #{departmentfile.deptId}
+            </if>
+            <if test="departmentfile.filePath != null">
+                and a.filePath = #{departmentfile.filePath}
+            </if>
+            <if test="departmentfile.extendName != null">
+                and a.extendName = #{departmentfile.extendName}
+            </if>
+            <if test="departmentfile.fileName != null and departmentfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{departmentfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 0
+        </where>
+    </select>
+
+    <sql id="selectByExtendName">
+        left join file on file.fileId = departmentfile.fileId
+        where extendName in
+        <foreach collection="fileNameList" open="(" close=")" separator="," item="fileName">
+            #{fileName}
+        </foreach>
+        and deptId = #{deptId}
+        and deleteFlag = 0
+        <if test="fileName != null and fileName != ''">
+            and departmentfile.fileName like CONCAT('%',#{fileName},'%')
+        </if>
+    </sql>
+    <sql id="selectByNotExtendName">
+        left join file on file.fileId = departmentfile.fileId
+        where extendName not in
+        <foreach collection="fileNameList" open="(" close=")" separator="," item="fileName">
+            #{fileName}
+        </foreach>
+        and deptId = #{deptId}
+        and deleteFlag = 0
+        <if test="fileName != null and fileName != ''">
+            and departmentfile.fileName like CONCAT('%',#{fileName},'%')
+        </if>
+    </sql>
+    <select id="selectFileByExtendName" parameterType="com.disk.file.model.DepartmentFile"
+            resultType="com.disk.file.vo.DepartmentfileListVO">
+        select * from departmentfile
+        <include refid="selectByExtendName"></include>
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="selectCountByExtendName" parameterType="com.disk.file.model.DepartmentFile" resultType="java.lang.Long">
+        select count(*) from departmentfile
+        <include refid="selectByExtendName"></include>
+    </select>
+
+    <select id="selectFileNotInExtendNames" parameterType="com.disk.file.model.DepartmentFile"
+            resultType="com.disk.file.vo.DepartmentfileListVO">
+        select * from departmentfile
+        <include refid="selectByNotExtendName"></include>
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="selectCountNotInExtendNames" parameterType="com.disk.file.model.DepartmentFile" resultType="java.lang.Long">
+        select count(*) from departmentfile
+        <include refid="selectByNotExtendName"></include>
+    </select>
+
+    <update id="updateFilepathByFilepath">
+        UPDATE departmentfile
+        SET filePath=REPLACE(filePath, #{param1}, #{param2})
+        WHERE filePath like N'${param1}%'
+          and deptId = #{param3}
+    </update>
+
+    <update id="replaceFilePath">
+        UPDATE departmentfile
+        SET filepath=REPLACE(filepath, #{oldFilePath}, #{filePath})
+        WHERE filepath LIKE N'${oldFilePath}%'
+          and deptId = #{deptId};
+    </update>
+
+    <select id="selectStorageSizeByDepartmentId" resultType="java.lang.Long" parameterType="java.lang.Long">
+        SELECT SUM(fileSize)
+        FROM departmentfile
+                 LEFT JOIN file ON file.fileId = departmentfile.fileId
+        WHERE departmentfile.deptId = #{deptId}
+          and deleteFlag = 0
+    </select>
+
+    <select id="deletefileList" resultType="com.disk.file.vo.DepartmentfileListVO">
+        select * from departmentfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="departmentfile.deptId != null">
+                and a.deptId = #{departmentfile.deptId}
+            </if>
+            <if test="departmentfile.filePath != null">
+                and a.filePath = #{departmentfile.filePath}
+            </if>
+            <if test="departmentfile.extendName != null">
+                and a.extendName = #{departmentfile.extendName}
+            </if>
+            <if test="departmentfile.fileName != null and departmentfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{departmentfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 1
+        </where>
+        ORDER BY isDir desc
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="deletefileCount" resultType="java.lang.Long">
+        select count(*) from departmentfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="departmentfile.deptId != null">
+                and a.deptId = #{departmentfile.deptId}
+            </if>
+            <if test="departmentfile.filePath != null">
+                and a.filePath = #{departmentfile.filePath}
+            </if>
+            <if test="departmentfile.extendName != null">
+                and a.extendName = #{departmentfile.extendName}
+            </if>
+            <if test="departmentfile.fileName != null and departmentfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{departmentfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 1
+        </where>
+    </select>
+
+    <update id="restoreFile">
+        UPDATE departmentfile
+        SET deleteFlag = 0
+        WHERE filePath = #{filePath}
+    </update>
+
+    <update id="updateDownloads">
+        UPDATE departmentfile
+        SET downloads = downloads + 1
+        WHERE deptFileId = #{deptFileId}
+    </update>
+
+    <select id="getDeptFileDownloads" resultType="com.disk.file.vo.DeptFileDownloadsVO">
+        SELECT subquery.deptFileId, subquery.fileName, subquery.extendName, subquery.downloads
+        FROM (
+                 SELECT deptFileId, fileName, extendName, downloads
+                 FROM DepartmentFile
+                 WHERE isDir = 0
+                   AND deleteFlag = 0
+                 ORDER BY downloads DESC
+                     LIMIT 1, 5
+             ) AS subquery
+        ORDER BY subquery.downloads ASC
+    </select>
+
+    <update id="deleteDeptRecoveryFile">
+        UPDATE departmentfile
+        SET deleteFlag = 2
+        WHERE deptFileId = #{deptFileId}
+    </update>
+</mapper>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.DepartmentMapper">
+    <resultMap id="departmentTreeVOMap" type="com.disk.file.vo.DepartmentTreeVO">
+        <id column="deptId" property="id"/>
+        <result column="parentId" property="parentId"/>
+        <result column="deptName" property="name"/>
+        <result column="deptRank" property="rank"/>
+    </resultMap>
+
+    <!-- 定义查询语句 -->
+    <select id="getDeptTree" resultMap="departmentTreeVOMap">
+        SELECT deptId, parentId, deptName, deptRank
+        FROM Department
+        WHERE delFlag = 0
+    </select>
+
+    <select id="getDeptInfo" resultType="com.disk.file.vo.DeptInfoVO">
+        SELECT
+            d.deptId AS deptId,
+            d.parentId AS parentId,
+            d.deptName AS deptName,
+            p.deptName AS parentName,
+            d.email AS email,
+            d.phone AS phone
+        FROM
+            Department d
+                LEFT JOIN
+            Department p ON d.parentId = p.deptId
+        WHERE d.delFlag = 0
+        LIMIT #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="getDeptNum" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM Department
+        WHERE delFlag = 0
+    </select>
+
+    <select id="searchDeptInfo" resultType="com.disk.file.vo.DeptInfoVO">
+        SELECT
+            d.deptName AS deptName,
+            p.deptName AS parentName,
+            d.email AS email,
+            d.phone AS phone,
+        FROM
+            Department d
+                LEFT JOIN
+            Department p ON d.parentId = p.deptId
+        WHERE d.deptName like CONCAT('%',#{deptName},'%') AND d.delFlag = 0
+            LIMIT #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="searchNum" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM Department
+        WHERE deptName like CONCAT('%',#{deptName},'%') AND delFlag = 0
+    </select>
+
+    <update id="deleteDept" parameterType="java.lang.Long">
+        UPDATE Department
+        SET
+            delFlag = 1
+        WHERE
+            deptId = #{deptId}
+    </update>
+
+    <insert id="addDept" parameterType="com.disk.file.model.Department">
+        insert into Department (delFlag, deptName, deptRank, email, parentId, phone)
+            value (#{delFlag}, #{deptName}, #{deptRank}, #{email}, #{parentId}, #{phone})
+    </insert>
+
+    <select id="findRank" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT deptRank
+        FROM Department
+        WHERE deptId=#{deptId}
+    </select>
+
+    <update id="updateDept" parameterType="com.disk.file.model.Department">
+        UPDATE Department
+        SET deptName=#{deptName}, parentId=#{parentId}, email=#{email}, phone=#{phone}, deptRank=#{deptRank}
+        WHERE deptId=#{deptId}
+    </update>
+
+    <select id="getDeptInfoById" parameterType="java.lang.Long" resultType="com.disk.file.vo.AddDeptVO">
+        SELECT deptName, parentId, phone, email
+        FROM Department
+        WHERE deptId=#{deptId}
+    </select>
+
+    <select id="getAllSonDeptsById" parameterType="java.lang.Long" resultMap="departmentTreeVOMap">
+        WITH RECURSIVE subdepartments AS (
+            SELECT * FROM `Department` WHERE `deptId` = #{deptId}  -- :deptId 是要查询的部门ID
+            UNION ALL
+            SELECT d.* FROM `Department` d
+                                INNER JOIN subdepartments sd ON d.`parentId` = sd.`deptId`
+        )
+        SELECT deptId, parentId, deptName, deptRank FROM subdepartments
+        ORDER BY deptId
+    </select>
+</mapper>

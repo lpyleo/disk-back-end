@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.UserfileMapper">
+
+    <select id="userfileList" resultType="com.disk.file.vo.UserfileListVO">
+        select * from userfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="userfile.userId != null">
+                and a.userId = #{userfile.userId}
+            </if>
+            <if test="userfile.filePath != null">
+                and a.filePath = #{userfile.filePath}
+            </if>
+            <if test="userfile.extendName != null">
+                and a.extendName = #{userfile.extendName}
+            </if>
+            <if test="userfile.fileName != null and userfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{userfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 0
+        </where>
+        ORDER BY isDir desc
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="userfileCount" resultType="java.lang.Long">
+        select count(*) from userfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="userfile.userId != null">
+                and a.userId = #{userfile.userId}
+            </if>
+            <if test="userfile.filePath != null">
+                and a.filePath = #{userfile.filePath}
+            </if>
+            <if test="userfile.extendName != null">
+                and a.extendName = #{userfile.extendName}
+            </if>
+            <if test="userfile.fileName != null and userfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{userfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 0
+        </where>
+    </select>
+
+    <sql id="selectByExtendName">
+        left join file on file.fileId = userfile.fileId
+        where extendName in
+        <foreach collection="fileNameList" open="(" close=")" separator="," item="fileName">
+            #{fileName}
+        </foreach>
+        and userId = #{userId}
+        and deleteFlag = 0
+        <if test="fileName != null and fileName != ''">
+            and userfile.fileName like CONCAT('%',#{fileName},'%')
+        </if>
+    </sql>
+
+    <sql id="selectByNotExtendName">
+        left join file on file.fileId = userfile.fileId
+        where extendName not in
+        <foreach collection="fileNameList" open="(" close=")" separator="," item="fileName">
+            #{fileName}
+        </foreach>
+        and userId = #{userId}
+        and deleteFlag = 0
+        <if test="fileName != null and fileName != ''">
+            and userfile.fileName like CONCAT('%',#{fileName},'%')
+        </if>
+    </sql>
+
+    <select id="selectFileByExtendName" parameterType="com.disk.file.model.UserFile"
+            resultType="com.disk.file.vo.UserfileListVO">
+        select * from userfile
+        <include refid="selectByExtendName"></include>
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="selectCountByExtendName" parameterType="com.disk.file.model.UserFile" resultType="java.lang.Long">
+        select count(*) from userfile
+        <include refid="selectByExtendName"></include>
+    </select>
+
+    <select id="selectFileNotInExtendNames" parameterType="com.disk.file.model.UserFile"
+            resultType="com.disk.file.vo.UserfileListVO">
+        select * from userfile
+        <include refid="selectByNotExtendName"></include>
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="selectCountNotInExtendNames" parameterType="com.disk.file.model.UserFile" resultType="java.lang.Long">
+        select count(*) from userfile
+        <include refid="selectByNotExtendName"></include>
+    </select>
+
+    <update id="updateFilepathByFilepath">
+        UPDATE userfile
+        SET filePath=REPLACE(filePath, #{param1}, #{param2})
+        WHERE filePath like N'${param1}%'
+          and userId = #{param3}
+    </update>
+
+    <update id="replaceFilePath">
+        UPDATE userfile
+        SET filepath=REPLACE(filepath, #{oldFilePath}, #{filePath})
+        WHERE filepath LIKE N'${oldFilePath}%'
+          and userId = #{userId};
+    </update>
+
+    <select id="selectStorageSizeByUserId" resultType="java.lang.Long" parameterType="java.lang.Long">
+        SELECT SUM(fileSize)
+        FROM userfile
+                 LEFT JOIN file ON file.fileId = userfile.fileId
+        WHERE userfile.userId = #{userId}
+          and deleteFlag = 0
+    </select>
+
+    <select id="deletefileList" resultType="com.disk.file.vo.UserfileListVO">
+        select * from userfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="userfile.userId != null">
+                and a.userId = #{userfile.userId}
+            </if>
+            <if test="userfile.filePath != null">
+                and a.filePath = #{userfile.filePath}
+            </if>
+            <if test="userfile.extendName != null">
+                and a.extendName = #{userfile.extendName}
+            </if>
+            <if test="userfile.fileName != null and userfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{userfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 1
+        </where>
+        ORDER BY isDir desc
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="deletefileCount" resultType="java.lang.Long">
+        select count(*) from userfile a
+        left join file on file.fileId = a.fileId
+        <where>
+            <if test="userfile.userId != null">
+                and a.userId = #{userfile.userId}
+            </if>
+            <if test="userfile.filePath != null">
+                and a.filePath = #{userfile.filePath}
+            </if>
+            <if test="userfile.extendName != null">
+                and a.extendName = #{userfile.extendName}
+            </if>
+            <if test="userfile.fileName != null and userfile.fileName != ''">
+                and a.fileName like CONCAT('%',#{userfile.fileName},'%')
+            </if>
+            and a.deleteFlag = 1
+        </where>
+    </select>
+
+    <update id="restoreFile">
+        UPDATE userfile
+        SET deleteFlag = 0
+        WHERE filePath = #{filePath}
+    </update>
+
+    <update id="deleteRecoveryFile">
+        UPDATE userfile
+        SET deleteFlag = 2
+        WHERE userFileId = #{userFileId}
+    </update>
+</mapper>

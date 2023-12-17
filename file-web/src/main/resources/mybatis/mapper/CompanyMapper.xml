@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.CompanyMapper">
+    <select id="searchCompanyInfo" resultType="com.disk.file.vo.CompanyInfoVO">
+        select companyName, companyDetail from Company
+    </select>
+    <update id="updateCompanyInfo" parameterType="com.disk.file.model.Company">
+        UPDATE company
+        SET companyName = #{companyName}, companyDetail = #{companyDetail}
+    </update>
+</mapper>

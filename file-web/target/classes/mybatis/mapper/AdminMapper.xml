@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.AdminMapper">
+    <insert id="insertAdmin" parameterType="com.disk.file.model.Administrator">
+        insert into Administrator (adminName, password, telephone, avatar)
+            value (#{adminName}, #{password}, #{telephone}, #{avatar})
+    </insert>
+
+    <select id="selectAdmin" resultType="com.disk.file.model.Administrator">
+        select * from Administrator
+    </select>
+
+    <select id="getAdminInfo" parameterType="java.lang.Long" resultType="com.disk.file.vo.AdminInfoVO">
+        SELECT avatar, adminName, telephone,
+        FROM Administrator
+        WHERE adminId = #{adminId}
+    </select>
+</mapper>

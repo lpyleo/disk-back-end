@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.NoticeMapper">
+    <select id="selectCount" resultType="java.lang.Long">
+        select count(*)
+        from Notice
+        where deleteFlag = 0
+    </select>
+
+    <select id="selectNotice" resultType="com.disk.file.vo.NoticeVO">
+        select noticeName, noticeContent, sendTime
+        from Notice
+        where deleteFlag = 0
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="getNoticeInfo" parameterType="java.lang.Long" resultType="com.disk.file.vo.NoticeVO">
+        select noticeName, noticeContent, sendTime
+        from Notice
+        where noticeId = #{noticeId}
+        and deleteFlag = 0
+    </select>
+
+    <select id="selectCountByName" resultType="java.lang.Long">
+        select count(*)
+        from Notice
+        where deleteFlag = 0
+        and noticeName like CONCAT('%',#{noticeName},'%')
+    </select>
+
+    <select id="selectNoticeByName" resultType="com.disk.file.vo.NoticeVO">
+        select noticeName, noticeContent, sendTime
+        from Notice
+        where deleteFlag = 0
+        and noticeName like CONCAT('%',#{noticeName},'%')
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="selectNoticeInfo" resultType="com.disk.file.vo.NoticeInfoVO">
+        SELECT n.noticeId, n.noticeName, n.noticeContent, n.sendTime, a.adminName AS sender, n.updateTime
+        FROM Notice n
+                 JOIN Administrator a ON n.senderId = a.adminId
+        WHERE n.deleteFlag = 0
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <insert id="insertNotice" parameterType="com.disk.file.model.Notice">
+        insert into Notice (deleteFlag, noticeContent, noticeName, sendTime, senderId, updateTime)
+            value (#{deleteFlag}, #{noticeContent}, #{noticeName}, #{sendTime}, #{senderId}, #{updateTime})
+    </insert>
+
+    <select id="deleteNotice">
+        UPDATE Notice
+        SET deleteFlag = 1
+        WHERE noticeId = #{noticeId}
+    </select>
+
+    <select id="selectNoticeInfoByName" resultType="com.disk.file.vo.NoticeInfoVO">
+        SELECT n.noticeName, n.noticeContent, n.sendTime, a.adminName AS sender, n.updateTime
+        FROM Notice n
+                 JOIN Administrator a ON n.senderId = a.adminId
+        WHERE n.deleteFlag = 0
+        and n.noticeName like CONCAT('%',#{noticeName},'%')
+            limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="updateNotice">
+        UPDATE Notice
+        SET noticeContent = #{noticeInfoVO.noticeContent},
+            noticeName = #{noticeInfoVO.noticeName},
+            updateTime = #{noticeInfoVO.updateTime}
+        WHERE noticeId = #{noticeId}
+    </select>
+</mapper>

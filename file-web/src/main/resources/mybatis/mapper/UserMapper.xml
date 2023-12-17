@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.disk.file.mapper.UserMapper">
+    <insert id="insertUser" parameterType="com.disk.file.model.User">
+        insert into user (deptId, username, password, telephone, avatar)
+            value (#{deptId}, #{username}, #{password}, #{telephone}, #{avatar})
+    </insert>
+
+    <select id="selectUser" resultType="com.disk.file.model.User">
+        select * from user
+    </select>
+
+    <select id="getUserInfo" parameterType="java.lang.Long" resultType="com.disk.file.vo.UserInfoVO">
+        SELECT u.avatar, u.username, u.telephone,
+               u.email, d.deptName as department, u.role, u.sex, u.deptId
+        FROM User u
+                 INNER JOIN Department d ON u.deptId = d.deptId
+        WHERE u.userId = #{userId}
+    </select>
+
+    <update id="updateUser" parameterType="com.disk.file.model.User">
+        UPDATE user
+        SET
+            username = #{username},
+            telephone = #{telephone},
+            email = #{email},
+            sex = #{sex}
+        WHERE
+            userId = #{userId}
+    </update>
+
+    <update id="updatePassword" parameterType="com.disk.file.model.User">
+        UPDATE user
+        SET
+            password = #{password}
+        WHERE
+            userId = #{userId}
+    </update>
+
+    <update id="updateLastLoginTime">
+        UPDATE user
+        SET
+            lastLoginTime = #{time}
+        WHERE
+            telephone = #{telephone}
+    </update>
+
+    <select id="getLoginTodayCount" resultType="com.disk.file.vo.LoginTodayCountVO">
+        SELECT d.parentId AS deptId, p.deptName AS deptName, COUNT(*) AS loginCount
+        FROM User u
+                 JOIN Department d ON u.deptId = d.deptId
+                 JOIN Department p ON d.parentId = p.deptId
+        WHERE DATE(u.lastLoginTime) = CURDATE()
+        GROUP BY deptId, deptName;
+    </select>
+
+    <select id="getUserDeptInfo" resultType="com.disk.file.vo.UserDeptInfoVO">
+        SELECT u.userId, u.username, u.telephone, d.deptName, p.deptName AS parentDeptName
+        FROM User u
+                 LEFT JOIN Department d ON u.deptId = d.deptId
+                 LEFT JOIN Department p ON d.parentId = p.deptId
+        <where>
+            <if test="username != null and username != ''">
+                and u.username like CONCAT('%',#{username},'%')
+            </if>
+            and u.deleteFlag = 0
+        </where>
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="getUserDeptInfoByDeptId" resultType="com.disk.file.vo.UserDeptInfoVO">
+        SELECT u.username, d.deptName, p.deptName AS parentDeptName
+        FROM User u
+        LEFT JOIN Department d ON u.deptId = d.deptId
+        LEFT JOIN Department p ON d.parentId = p.deptId
+        WHERE
+        u.deptId = #{deptId}
+        and u.deleteFlag = 0
+        limit #{beginCount}, #{pageCount}
+    </select>
+
+    <select id="getUserDeptCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM User u
+                 LEFT JOIN Department d ON u.deptId = d.deptId
+                 LEFT JOIN Department p ON d.parentId = p.deptId
+        <where>
+            <if test="username != null and username != ''">
+                and u.username like CONCAT('%',#{username},'%')
+            </if>
+            and u.deleteFlag = 0
+        </where>
+    </select>
+
+    <select id="getUserDeptCountByDeptId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM User u
+        LEFT JOIN Department d ON u.deptId = d.deptId
+        LEFT JOIN Department p ON d.parentId = p.deptId
+        WHERE
+        u.deptId = #{deptId}
+        and u.deleteFlag = 0
+    </select>
+
+    <select id="deleteUser">
+        UPDATE User
+        SET deleteFlag = 1
+        WHERE userId = #{userId}
+    </select>
+
+    <select id="deleteUserByTele">
+        UPDATE User
+        SET deleteFlag = 1
+        WHERE telephone = #{tele}
+    </select>
+
+    <select id="updateUserDept">
+        UPDATE User
+        SET deptId = #{deptId}
+        WHERE userId = #{userId}
+    </select>
+</mapper>
